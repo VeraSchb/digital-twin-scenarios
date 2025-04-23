@@ -1,0 +1,200 @@
+<testset xmlns="http://cpee.org/ns/properties/2.0">
+  <executionhandler>ruby</executionhandler>
+  <dataelements/>
+  <endpoints>
+    <timeout>https-post://cpee.org/services/timeout.php</timeout>
+    <subprocess>https://cpee.org/flow/start/url/</subprocess>
+    <setvent>https-put://cpee.org/dtc/4/environment/vent_window</setvent>
+    <dtcget>https-get://cpee.org/dtc/4/all</dtcget>
+  </endpoints>
+  <attributes>
+    <guarded>none</guarded>
+    <modeltype>CPEE</modeltype>
+    <theme>packed</theme>
+    <guarded_id/>
+    <info>Air Quality - Environmental Window</info>
+    <creator>Christine Ashcreek</creator>
+    <author>Christine Ashcreek</author>
+    <model_uuid>a97ffa37-b62b-4bbe-a719-d5dddfe8b369</model_uuid>
+    <model_version/>
+    <design_dir>Theses.dir/Vera Schmidtborn.dir/Air Quality.dir/</design_dir>
+    <design_stage>development</design_stage>
+  </attributes>
+  <description>
+    <description xmlns="http://cpee.org/ns/description/1.0">
+      <parallel wait="-1" cancel="last">
+        <parallel_branch>
+          <call id="a2" endpoint="dtcget">
+            <parameters>
+              <label>Read</label>
+              <arguments>
+                <many>true</many>
+                <item>environment/vent_window</item>
+                <item>environment/room_size</item>
+              </arguments>
+            </parameters>
+            <code>
+              <prepare/>
+              <finalize output="result"/>
+              <update output="result">if result['partial']
+  if result['partial']['name'] == 'vent_window'
+    data.vent_window = result['partial']['value']
+  end
+  if result['partial']['name'] == 'room_size'
+    data.room_size = result['partial']['value']
+  end
+end
+if result['full']
+  data.vent_window = result['full']['environment/vent_window']
+  data.room_size = result['full']['environment/room_size']
+end</update>
+              <rescue output="result"/>
+            </code>
+            <annotations>
+              <_generic/>
+              <_timing>
+                <_timing_weight/>
+                <_timing_avg/>
+                <explanations/>
+              </_timing>
+              <_shifting>
+                <_shifting_type>Duration</_shifting_type>
+              </_shifting>
+              <_context_data_analysis>
+                <probes/>
+                <ips/>
+              </_context_data_analysis>
+              <report>
+                <url/>
+              </report>
+              <_notes>
+                <_notes_general/>
+              </_notes>
+            </annotations>
+            <documentation>
+              <input/>
+              <output/>
+              <implementation>
+                <description/>
+              </implementation>
+              <code>
+                <description/>
+              </code>
+            </documentation>
+          </call>
+        </parallel_branch>
+        <parallel_branch>
+          <loop mode="pre_test" condition="true">
+            <_probability>
+              <_probability_min/>
+              <_probability_max/>
+              <_probability_avg/>
+            </_probability>
+            <call id="a3" endpoint="timeout">
+              <parameters>
+                <label>Wait</label>
+                <arguments>
+                  <timeout>2</timeout>
+                </arguments>
+              </parameters>
+              <annotations>
+                <_generic/>
+                <_timing>
+                  <_timing_weight/>
+                  <_timing_avg/>
+                  <explanations/>
+                </_timing>
+                <_shifting>
+                  <_shifting_type>Duration</_shifting_type>
+                </_shifting>
+                <_context_data_analysis>
+                  <probes/>
+                  <ips/>
+                </_context_data_analysis>
+                <report>
+                  <url/>
+                </report>
+                <_notes>
+                  <_notes_general/>
+                </_notes>
+              </annotations>
+              <documentation>
+                <input/>
+                <output/>
+                <implementation>
+                  <description/>
+                </implementation>
+              </documentation>
+            </call>
+            <manipulate id="a4" label="Calculate Window Effect">if rand &lt; 0.3
+  window = 2
+else
+  window = 0
+end
+data.new_vent_window = window * data.room_size</manipulate>
+            <choose mode="exclusive">
+              <alternative condition="data.vent_window != data.new_vent_window">
+                <call id="a6" endpoint="setvent">
+                  <parameters>
+                    <label>Set Ventilation Rate Window</label>
+                    <arguments>
+                      <float>!data.new_vent_window</float>
+                    </arguments>
+                  </parameters>
+                  <code>
+                    <prepare/>
+                    <finalize output="result"/>
+                    <update output="result"/>
+                    <rescue output="result"/>
+                  </code>
+                  <annotations>
+                    <_generic/>
+                    <_timing>
+                      <_timing_weight/>
+                      <_timing_avg/>
+                      <explanations/>
+                    </_timing>
+                    <_shifting>
+                      <_shifting_type>Duration</_shifting_type>
+                    </_shifting>
+                    <_context_data_analysis>
+                      <probes/>
+                      <ips/>
+                    </_context_data_analysis>
+                    <report>
+                      <url/>
+                    </report>
+                    <_notes>
+                      <_notes_general/>
+                    </_notes>
+                  </annotations>
+                  <documentation>
+                    <input/>
+                    <output/>
+                    <implementation>
+                      <description/>
+                    </implementation>
+                    <code>
+                      <description/>
+                    </code>
+                  </documentation>
+                </call>
+                <_probability>
+                  <_probability_min/>
+                  <_probability_max/>
+                  <_probability_avg/>
+                </_probability>
+              </alternative>
+              <otherwise/>
+            </choose>
+          </loop>
+        </parallel_branch>
+      </parallel>
+    </description>
+  </description>
+  <transformation>
+    <description type="copy"/>
+    <dataelements type="none"/>
+    <endpoints type="none"/>
+  </transformation>
+</testset>
