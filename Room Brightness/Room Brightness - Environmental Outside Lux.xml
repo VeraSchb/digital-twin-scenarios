@@ -1,0 +1,236 @@
+<testset xmlns="http://cpee.org/ns/properties/2.0">
+  <executionhandler>ruby</executionhandler>
+  <dataelements/>
+  <endpoints>
+    <timeout>https-post://cpee.org/services/timeout.php</timeout>
+    <subprocess>https://cpee.org/flow/start/url/</subprocess>
+    <setlux>https-put://cpee.org/dtc/3/environment/lux_outside</setlux>
+    <setsolar>https-put://cpee.org/dtc/3/environment/solar_elevation</setsolar>
+    <dtcget>https-get://cpee.org/dtc/3/all</dtcget>
+  </endpoints>
+  <attributes>
+    <guarded>none</guarded>
+    <modeltype>CPEE</modeltype>
+    <theme>packed</theme>
+    <guarded_id/>
+    <info>Room Brightness - Environmental Outside Lux</info>
+    <creator>Christine Ashcreek</creator>
+    <author>Christine Ashcreek</author>
+    <model_uuid>5f207bf7-1003-4b53-84b1-7742bbdf1828</model_uuid>
+    <model_version/>
+    <design_dir>Theses.dir/Vera Schmidtborn.dir/Room Brightness.dir</design_dir>
+    <design_stage>development</design_stage>
+  </attributes>
+  <description>
+    <description xmlns="http://cpee.org/ns/description/1.0">
+      <parallel wait="-1" cancel="last">
+        <parallel_branch>
+          <manipulate id="a1" label="Set Time">data.time = 0</manipulate>
+          <call id="a2" endpoint="dtcget">
+            <parameters>
+              <label>Read</label>
+              <arguments>
+                <many>true</many>
+              </arguments>
+            </parameters>
+            <code>
+              <prepare/>
+              <finalize output="result"/>
+              <update output="result"/>
+              <rescue output="result"/>
+            </code>
+            <annotations>
+              <_generic/>
+              <_timing>
+                <_timing_weight/>
+                <_timing_avg/>
+                <explanations/>
+              </_timing>
+              <_shifting>
+                <_shifting_type>Duration</_shifting_type>
+              </_shifting>
+              <_context_data_analysis>
+                <probes/>
+                <ips/>
+              </_context_data_analysis>
+              <report>
+                <url/>
+              </report>
+              <_notes>
+                <_notes_general/>
+              </_notes>
+            </annotations>
+            <documentation>
+              <input/>
+              <output/>
+              <implementation>
+                <description/>
+              </implementation>
+              <code>
+                <description/>
+              </code>
+            </documentation>
+          </call>
+        </parallel_branch>
+        <parallel_branch>
+          <loop mode="pre_test" condition="true">
+            <_probability>
+              <_probability_min/>
+              <_probability_max/>
+              <_probability_avg/>
+            </_probability>
+            <call id="a3" endpoint="timeout">
+              <parameters>
+                <label>Wait</label>
+                <arguments>
+                  <timeout>1</timeout>
+                </arguments>
+              </parameters>
+              <annotations>
+                <_generic/>
+                <_timing>
+                  <_timing_weight/>
+                  <_timing_avg/>
+                  <explanations/>
+                </_timing>
+                <_shifting>
+                  <_shifting_type>Duration</_shifting_type>
+                </_shifting>
+                <_context_data_analysis>
+                  <probes/>
+                  <ips/>
+                </_context_data_analysis>
+                <report>
+                  <url/>
+                </report>
+                <_notes>
+                  <_notes_general/>
+                </_notes>
+              </annotations>
+              <documentation>
+                <input/>
+                <output/>
+                <implementation>
+                  <description/>
+                </implementation>
+              </documentation>
+            </call>
+            <manipulate id="a7" label="Calculate Lux Outside">if data.time == 0
+  if rand &gt; 0.75
+    data.sunlight_noon = 100000
+  elsif rand &gt; 0.50
+    data.sunlight_noon = 75000
+  elsif rand &gt; 0.25
+    data.sunlight_noon = 50000
+  else
+    data.sunlight_noon = 25000
+  end
+end
+if data.sunlight_noon == 100000
+  cloud_factor = 1.0 - rand(0.0..0.15)
+elsif data.sunlight_noon == 75000
+  cloud_factor = 1.0 - rand(0.0..0.1)
+elsif data.sunlight_noon == 50000 
+  cloud_factor = 1.0 - rand(0.0..0.05)
+else 
+  cloud_factor = 1.0 - rand(0.0..0.025)
+end
+lux_outside = data.sunlight_noon * [0, Math.sin(Math::PI * (data.time - 6) / 12)].max
+data.lux_outside = lux_outside * cloud_factor
+solar_elevation = [0, 50 * Math.sin(Math::PI * (data.time - 6) / 12)].max
+data.solar_elevation = Math.sin(solar_elevation * Math::PI / 180)
+data.time += 0.25
+data.time = 0 if data.time == 24</manipulate>
+            <choose mode="exclusive">
+              <alternative condition="data.time &gt;= 6 &amp;&amp; data.time &lt;= 18.5">
+                <_probability>
+                  <_probability_min/>
+                  <_probability_max/>
+                  <_probability_avg/>
+                </_probability>
+                <call id="a5" endpoint="setlux">
+                  <parameters>
+                    <label>Set Lux Outside</label>
+                    <arguments>
+                      <float>!data.lux_outside</float>
+                    </arguments>
+                  </parameters>
+                  <annotations>
+                    <_generic/>
+                    <_timing>
+                      <_timing_weight/>
+                      <_timing_avg/>
+                      <explanations/>
+                    </_timing>
+                    <_shifting>
+                      <_shifting_type>Duration</_shifting_type>
+                    </_shifting>
+                    <_context_data_analysis>
+                      <probes/>
+                      <ips/>
+                    </_context_data_analysis>
+                    <report>
+                      <url/>
+                    </report>
+                    <_notes>
+                      <_notes_general/>
+                    </_notes>
+                  </annotations>
+                  <documentation>
+                    <input/>
+                    <output/>
+                    <implementation>
+                      <description/>
+                    </implementation>
+                  </documentation>
+                </call>
+                <call id="a6" endpoint="setsolar">
+                  <parameters>
+                    <label>Set Solar Elevation</label>
+                    <arguments>
+                      <float>!data.solar_elevation</float>
+                    </arguments>
+                  </parameters>
+                  <annotations>
+                    <_generic/>
+                    <_timing>
+                      <_timing_weight/>
+                      <_timing_avg/>
+                      <explanations/>
+                    </_timing>
+                    <_shifting>
+                      <_shifting_type>Duration</_shifting_type>
+                    </_shifting>
+                    <_context_data_analysis>
+                      <probes/>
+                      <ips/>
+                    </_context_data_analysis>
+                    <report>
+                      <url/>
+                    </report>
+                    <_notes>
+                      <_notes_general/>
+                    </_notes>
+                  </annotations>
+                  <documentation>
+                    <input/>
+                    <output/>
+                    <implementation>
+                      <description/>
+                    </implementation>
+                  </documentation>
+                </call>
+              </alternative>
+              <otherwise/>
+            </choose>
+          </loop>
+        </parallel_branch>
+      </parallel>
+    </description>
+  </description>
+  <transformation>
+    <description type="copy"/>
+    <dataelements type="none"/>
+    <endpoints type="none"/>
+  </transformation>
+</testset>

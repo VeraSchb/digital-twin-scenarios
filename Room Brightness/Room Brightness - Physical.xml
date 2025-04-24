@@ -1,0 +1,191 @@
+<testset xmlns="http://cpee.org/ns/properties/2.0">
+  <executionhandler>ruby</executionhandler>
+  <dataelements/>
+  <endpoints>
+    <timeout>https-post://cpee.org/services/timeout.php</timeout>
+    <subprocess>https://cpee.org/flow/start/url/</subprocess>
+    <dtcget>https-get://cpee.org/dtc/3/all</dtcget>
+    <brightset>https-put://cpee.org/dtc/3/sensors/brightness</brightset>
+  </endpoints>
+  <attributes>
+    <guarded>none</guarded>
+    <modeltype>CPEE</modeltype>
+    <theme>packed</theme>
+    <guarded_id/>
+    <info>Room Brightness - Physical</info>
+    <creator>Christine Ashcreek</creator>
+    <author>Christine Ashcreek</author>
+    <model_uuid>e7b389da-de1c-4532-ab74-4fc916797514</model_uuid>
+    <model_version/>
+    <design_dir>Theses.dir/Vera Schmidtborn.dir/Room Brightness.dir/</design_dir>
+    <design_stage>development</design_stage>
+  </attributes>
+  <description>
+    <description xmlns="http://cpee.org/ns/description/1.0">
+      <parallel wait="-1" cancel="last">
+        <parallel_branch>
+          <call id="a1" endpoint="dtcget">
+            <parameters>
+              <label>Read</label>
+              <arguments>
+                <many>true</many>
+              </arguments>
+            </parameters>
+            <code>
+              <prepare/>
+              <finalize output="result"/>
+              <update output="result">if result['partial']
+  data.data[result['partial']['group'] + '/' + result['partial']['name']] = result['partial']['value']
+end
+if result['full']
+  data.data = result['full']
+end</update>
+              <rescue output="result"/>
+            </code>
+            <annotations>
+              <_generic/>
+              <_timing>
+                <_timing_weight/>
+                <_timing_avg/>
+                <explanations/>
+              </_timing>
+              <_shifting>
+                <_shifting_type>Duration</_shifting_type>
+              </_shifting>
+              <_context_data_analysis>
+                <probes/>
+                <ips/>
+              </_context_data_analysis>
+              <report>
+                <url/>
+              </report>
+              <_notes>
+                <_notes_general/>
+              </_notes>
+            </annotations>
+            <documentation>
+              <input/>
+              <output/>
+              <implementation>
+                <description/>
+              </implementation>
+              <code>
+                <description/>
+              </code>
+            </documentation>
+          </call>
+        </parallel_branch>
+        <parallel_branch>
+          <loop mode="pre_test" condition="true">
+            <_probability>
+              <_probability_min/>
+              <_probability_max/>
+              <_probability_avg/>
+            </_probability>
+            <call id="a3" endpoint="timeout">
+              <parameters>
+                <label>Wait</label>
+                <method>:post</method>
+                <arguments>
+                  <timeout>1</timeout>
+                </arguments>
+              </parameters>
+              <annotations>
+                <_generic/>
+                <_timing>
+                  <_timing_weight/>
+                  <_timing_avg/>
+                  <explanations/>
+                </_timing>
+                <_shifting>
+                  <_shifting_type>Duration</_shifting_type>
+                </_shifting>
+                <_context_data_analysis>
+                  <probes/>
+                  <ips/>
+                </_context_data_analysis>
+                <report>
+                  <url/>
+                </report>
+                <_notes>
+                  <_notes_general/>
+                </_notes>
+              </annotations>
+              <documentation>
+                <input/>
+                <output/>
+                <implementation>
+                  <description/>
+                </implementation>
+              </documentation>
+            </call>
+            <manipulate id="a4" label="Calculate Brightness">window_scaled = data.data['environment/solar_elevation'] * data.data['environment/window_size']
+lux_in = [data.data['environment/lux_outside'] * 0.15, 
+  [0.05 * data.data['environment/lux_outside'], 
+    data.data['environment/lux_outside'] * window_scaled * (
+      data.data['environment/glass_transmission'] * data.data['actuators/blinds']**2
+    )
+  ].max
+].min
+if data.data['actuators/light']
+  lux_in += data.data['actuators/intensity']
+end
+lux_in += data.data['environment/additional_light']
+data.new_brightness = lux_in / data.data['environment/room_size']</manipulate>
+            <choose mode="exclusive">
+              <alternative condition="data.data['sensors/brightness'] != data.new_brightness">
+                <_probability>
+                  <_probability_min/>
+                  <_probability_max/>
+                  <_probability_avg/>
+                </_probability>
+                <call id="a5" endpoint="brightset">
+                  <parameters>
+                    <label>Set Brightness</label>
+                    <arguments>
+                      <float>!data.new_brightness</float>
+                    </arguments>
+                  </parameters>
+                  <annotations>
+                    <_generic/>
+                    <_timing>
+                      <_timing_weight/>
+                      <_timing_avg/>
+                      <explanations/>
+                    </_timing>
+                    <_shifting>
+                      <_shifting_type>Duration</_shifting_type>
+                    </_shifting>
+                    <_context_data_analysis>
+                      <probes/>
+                      <ips/>
+                    </_context_data_analysis>
+                    <report>
+                      <url/>
+                    </report>
+                    <_notes>
+                      <_notes_general/>
+                    </_notes>
+                  </annotations>
+                  <documentation>
+                    <input/>
+                    <output/>
+                    <implementation>
+                      <description/>
+                    </implementation>
+                  </documentation>
+                </call>
+              </alternative>
+              <otherwise/>
+            </choose>
+          </loop>
+        </parallel_branch>
+      </parallel>
+    </description>
+  </description>
+  <transformation>
+    <description type="copy"/>
+    <dataelements type="none"/>
+    <endpoints type="none"/>
+  </transformation>
+</testset>
