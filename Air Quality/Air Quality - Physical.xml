@@ -117,7 +117,7 @@ end</update>
                 </implementation>
               </documentation>
             </call>
-            <manipulate id="a2" label="Calculate CO2 Levels">time = 5.0/60.0
+            <manipulate id="a2" label="Calculate CO2 Levels">time = 0.25
 if data.data['actuators/fan']
   c_steady = 380 + (data.data['environment/co2_production']) / (data.data['actuators/extraction_rate'] + data.data['environment/vent_window'])
   co2 = c_steady + (data.data['sensors/co2_level'] - c_steady) * Math.exp(
